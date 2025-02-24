@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -22,58 +22,7 @@ ChartJS.register(
   CategoryScale
 );
 
-const TimelineChart = () => {
-  const timelineData = {
-    labels: ['18:00', '21:00', '00:00', '03:00', '06:00', '09:00', '12:00', '15:00'],
-    datasets: [
-      {
-        label: 'Keypresses',
-        data: [1500, 2500, 1000, 500, 200, 1000, 2000, 1500],
-        borderColor: 'rgba(255, 255, 150, 0.9)',
-        backgroundColor: 'rgba(255, 255, 150, 0.1)',
-        borderWidth: 1,
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: 'Mouse Movement',
-        data: [1200, 2000, 800, 400, 100, 800, 1500, 1200],
-        borderColor: 'rgba(100, 150, 255, 0.9)',
-        backgroundColor: 'rgba(100, 150, 255, 0.1)',
-        borderWidth: 1,
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: 'Middle Clicks',
-        data: [800, 1500, 600, 300, 50, 600, 1200, 900],
-        borderColor: 'rgba(150, 255, 150, 0.9)',
-        backgroundColor: 'rgba(150, 255, 150, 0.1)',
-        borderWidth: 1,
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: 'Right Clicks',
-        data: [1000, 1800, 700, 350, 75, 700, 1400, 1100],
-        borderColor: 'rgba(200, 150, 255, 0.9)',
-        backgroundColor: 'rgba(200, 150, 255, 0.1)',
-        borderWidth: 1,
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: 'Left Clicks',
-        data: [900, 1700, 650, 325, 60, 650, 1300, 1000],
-        borderColor: 'rgba(255, 255, 255, 0.9)',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 1,
-        tension: 0.4,
-        fill: true,
-      }
-    ]
-  };
-
+const TimelineChart = ({ data }) => {
   const timelineOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -151,50 +100,251 @@ const TimelineChart = () => {
 
   return (
     <div className="timeline-chart">
-      <Line data={timelineData} options={timelineOptions} />
+      <Line data={data} options={timelineOptions} />
     </div>
   );
 };
 
 const ActivityDashboard = () => {
-  const activityData = {
-    leftClicks: 1170000,
-    rightClicks: 3100000,
-    middleClicks: 20000,
-    keypresses: 3380000,
-    mouseMovement: 1800000
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        // Try to fetch from Netlify function first
+        const response = await fetch('/.netlify/functions/get-metrics');
+        
+        if (response.ok) {
+          const data = await response.json();
+          setMetrics(data);
+        } else {
+          // Fallback to local API if Netlify function fails
+          const localResponse = await fetch('http://localhost:5000/metrics');
+          const localData = await localResponse.json();
+          setMetrics(localData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch metrics:', error);
+        
+        // Try local API as fallback
+        try {
+          const localResponse = await fetch('http://localhost:5000/metrics');
+          const localData = await localResponse.json();
+          setMetrics(localData);
+        } catch (localError) {
+          console.error('Failed to fetch from local API:', localError);
+        }
+      }
+    };
+
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 60000); // Fetch every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  // Use metrics data if available, otherwise fallback to dummy data
+  const activityData = useMemo(() => {
+    if (!metrics) return { leftClicks: 0, rightClicks: 0, middleClicks: 0, keypresses: 0, mouseMovement: 0 };
+    
+    return {
+      leftClicks: metrics.mouse_clicks.left || 0,
+      rightClicks: metrics.mouse_clicks.right || 0,
+      middleClicks: metrics.mouse_clicks.middle || 0,
+      keypresses: metrics.keypresses || 0,
+      mouseMovement: metrics.mouse_movement || 0
+    };
+  }, [metrics]);
+
+  // Get the latest app usage data for radar chart
+  const radarData = useMemo(() => {
+    if (!metrics || !metrics.hourly_data || metrics.hourly_data.length === 0) {
+      return {
+        labels: ['No data available'],
+        datasets: [{
+          data: [0],
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.7)',
+          pointBackgroundColor: 'rgba(255, 255, 255, 1)',
+          borderWidth: 1,
+          fill: true
+        }]
+      };
+    }
+
+    // Get the latest hourly data entry
+    const latestData = metrics.hourly_data[metrics.hourly_data.length - 1];
+    
+    // If no top_apps data, use dummy data for testing
+    if (!latestData.top_apps || Object.keys(latestData.top_apps).length === 0) {
+      console.log("No app data found, using fallback data");
+      const fallbackApps = {
+        "chrome.exe": 25,
+        "code.exe": 15,
+        "explorer.exe": 10,
+        "node.exe": 8,
+        "python.exe": 5,
+        "spotify.exe": 3
+      };
+      
+      // Format app names for display
+      const formattedLabels = Object.keys(fallbackApps).map(app => 
+        formatAppName(app)
+      );
+      
+      return {
+        labels: formattedLabels,
+        datasets: [{
+          data: Object.values(fallbackApps),
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.7)',
+          pointBackgroundColor: 'rgba(255, 255, 255, 1)',
+          borderWidth: 1,
+          fill: true
+        }]
+      };
+    }
+    
+    const topApps = latestData.top_apps;
+    console.log("Found app data:", topApps);
+    
+    // Format app names for display
+    const formattedLabels = Object.keys(topApps).map(app => formatAppName(app));
+    
+    // Get app usage values
+    const appValues = Object.values(topApps);
+    
+    return {
+      labels: formattedLabels,
+      datasets: [{
+        data: appValues,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.7)',
+        pointBackgroundColor: 'rgba(255, 255, 255, 1)',
+        borderWidth: 1,
+        fill: true
+      }]
+    };
+  }, [metrics]);
+
+  // Calculate daily averages from hourly data
+  const avgDailyActivity = useMemo(() => {
+    if (!metrics) {
+      return {};
+    }
+
+    // Get current day of week
+    const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    
+    // Create an object with all days of the week
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days.reduce((acc, day) => {
+      // Only show data for the current day
+      if (day === currentDay) {
+        acc[day] = {
+          leftClicks: metrics.mouse_clicks.left || 0,
+          rightClicks: metrics.mouse_clicks.right || 0,
+          middleClicks: metrics.mouse_clicks.middle || 0,
+          keypresses: metrics.keypresses || 0,
+          mouseMovement: metrics.mouse_movement || 0
+        };
+      } else {
+        // Use null for other days to display as "-"
+        acc[day] = {
+          leftClicks: null,
+          rightClicks: null,
+          middleClicks: null,
+          keypresses: null,
+          mouseMovement: null
+        };
+      }
+      return acc;
+    }, {});
+  }, [metrics]);
+
+  // Convert to array and format numbers
+  const sortedDailyActivity = useMemo(() => {
+    const formattedArray = Object.entries(avgDailyActivity).map(([day, data]) => ({
+      day,
+      leftClicks: data.leftClicks !== null ? formatNumber(data.leftClicks) : "-",
+      rightClicks: data.rightClicks !== null ? formatNumber(data.rightClicks) : "-",
+      middleClicks: data.middleClicks !== null ? formatNumber(data.middleClicks) : "-",
+      keypresses: data.keypresses !== null ? formatNumber(data.keypresses) : "-",
+      mouseMovement: data.mouseMovement !== null ? formatNumber(data.mouseMovement) : "-"
+    }));
+
+    // Sort by days of week
+    const daysOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return formattedArray.sort((a, b) => 
+      daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day)
+    );
+  }, [avgDailyActivity]);
+
+  // Format the hourly data for the timeline
+  const timelineData = {
+    labels: metrics?.hourly_data.map(data => 
+      new Date(data.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    ) || [],
+    datasets: [
+      {
+        label: 'Keypresses',
+        data: metrics?.hourly_data.map(data => data.keypresses) || [],
+        borderColor: 'rgba(255, 255, 150, 0.9)',
+        backgroundColor: 'rgba(255, 255, 150, 0.1)',
+        borderWidth: 1,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Mouse Movement',
+        data: metrics?.hourly_data.map(data => data.mouse_movement) || [],
+        borderColor: 'rgba(100, 150, 255, 0.9)',
+        backgroundColor: 'rgba(100, 150, 255, 0.1)',
+        borderWidth: 1,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Middle Clicks',
+        data: metrics?.hourly_data.map(data => data.mouse_clicks.middle) || [],
+        borderColor: 'rgba(150, 255, 150, 0.9)',
+        backgroundColor: 'rgba(150, 255, 150, 0.1)',
+        borderWidth: 1,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Right Clicks',
+        data: metrics?.hourly_data.map(data => data.mouse_clicks.right) || [],
+        borderColor: 'rgba(200, 150, 255, 0.9)',
+        backgroundColor: 'rgba(200, 150, 255, 0.1)',
+        borderWidth: 1,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Left Clicks',
+        data: metrics?.hourly_data.map(data => data.mouse_clicks.left) || [],
+        borderColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
   };
 
-  const activityBreakdown = {
-    leagueOfLegends: 43,
-    youtube: 20,
-    discord: 20,
-    anime: 6,
-    research: 7,
-    other: 4
-  };
+  // Get the latest app usage data
+  const latestAppUsage = metrics?.hourly_data[metrics.hourly_data.length - 1]?.top_apps || {};
+  const totalUsage = Object.values(latestAppUsage).reduce((a, b) => a + b, 0);
+  
+  const activityBreakdown = Object.fromEntries(
+    Object.entries(latestAppUsage).map(([app, usage]) => [
+      app,
+      Math.round((usage / totalUsage) * 100)
+    ])
+  );
 
-  const focusDistribution = {
-    leagueOfLegends: 433,
-    discord: 243,
-    youtube: 179,
-    research: 118,
-    anime: 83,
-    other: 150
-  };
-
-  const radarData = {
-    labels: Object.keys(focusDistribution).map(key => key.replace(/([A-Z])/g, ' $1').toLowerCase()),
-    datasets: [{
-      data: Object.values(focusDistribution),
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      borderColor: 'rgba(255, 255, 255, 0.7)',
-      pointBackgroundColor: 'rgba(255, 255, 255, 1)',
-      borderWidth: 1,
-      fill: true
-    }]
-  };
-
+  // Update chart options to handle time-based data
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -203,7 +353,11 @@ const ActivityDashboard = () => {
         display: false
       },
       tooltip: {
-        enabled: false
+        callbacks: {
+          label: function(context) {
+            return `${context.label}: ${context.raw.toFixed(1)} min`;
+          }
+        }
       }
     },
     scales: {
@@ -223,23 +377,13 @@ const ActivityDashboard = () => {
         },
         ticks: {
           display: false,
-          stepSize: 100
+          stepSize: 10
         },
         suggestedMin: 0,
-        suggestedMax: 500
+        suggestedMax: 60  // Max 60 minutes (1 hour)
       }
     }
   };
-
-  const avgDailyActivity = [
-    { day: "Sun", leftClicks: "4206", rightClicks: "14507", middleClicks: "71", keypresses: "22716", mouseMovement: "7537" },
-    { day: "Mon", leftClicks: "5010", rightClicks: "13723", middleClicks: "102", keypresses: "15441", mouseMovement: "8423" },
-    { day: "Tue", leftClicks: "5649", rightClicks: "14217", middleClicks: "89", keypresses: "15822", mouseMovement: "8304" },
-    { day: "Wed", leftClicks: "5957", rightClicks: "14459", middleClicks: "102", keypresses: "16400", mouseMovement: "7743" },
-    { day: "Thu", leftClicks: "5121", rightClicks: "8512", middleClicks: "86", keypresses: "15176", mouseMovement: "6637" },
-    { day: "Fri", leftClicks: "5239", rightClicks: "15447", middleClicks: "96", keypresses: "16335", mouseMovement: "8440" },
-    { day: "Sat", leftClicks: "4593", rightClicks: "19375", middleClicks: "80", keypresses: "15165", mouseMovement: "9179" }
-  ];
 
   return (
     <div className="dashboard-container">
@@ -254,28 +398,28 @@ const ActivityDashboard = () => {
         <div className="stats-row">
           <div className="stat-item">
             <span className="stat-label">Left Clicks</span>
-            <span className="stat-value">1.17m</span>
+            <span className="stat-value">{formatNumber(activityData.leftClicks)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Right Clicks</span>
-            <span className="stat-value">3.10m</span>
+            <span className="stat-value">{formatNumber(activityData.rightClicks)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Middle Clicks</span>
-            <span className="stat-value">20k</span>
+            <span className="stat-value">{formatNumber(activityData.middleClicks)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Keypresses</span>
-            <span className="stat-value">3.38m</span>
+            <span className="stat-value">{formatNumber(activityData.keypresses)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Mouse Movement</span>
-            <span className="stat-value">1.80m feet</span>
+            <span className="stat-value">{formatNumber(activityData.mouseMovement)} feet</span>
           </div>
         </div>
         
         <div className="timeline-section">
-          <TimelineChart />
+          <TimelineChart data={timelineData} />
         </div>
 
         <div className="activity-table">
@@ -291,7 +435,7 @@ const ActivityDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {avgDailyActivity.map((row, index) => (
+              {sortedDailyActivity.map((row, index) => (
                 <tr key={index}>
                   <td>{row.day}</td>
                   <td>{row.leftClicks}</td>
@@ -308,5 +452,93 @@ const ActivityDashboard = () => {
     </div>
   );
 }
+
+// Helper function to format numbers
+const formatNumber = (num) => {
+  if (!num && num !== 0) return '0';
+  
+  if (num >= 1000000) return `${(num / 1000000).toFixed(2)}m`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+  
+  // Format decimal numbers (like mouse movement in feet)
+  if (num % 1 !== 0) return num.toFixed(1);
+  
+  return num.toString();
+};
+
+// Helper function to format app names
+const formatAppName = (appName) => {
+  // System processes to filter out
+  const systemProcesses = [
+    'memcompression',
+    'system',
+    'registry',
+    'smss.exe',
+    'csrss.exe',
+    'wininit.exe',
+    'services.exe',
+    'lsass.exe',
+    'svchost.exe',
+    'dwm.exe',
+    'ntoskrnl.exe',
+    'winlogon.exe',
+    'taskmgr.exe',
+    'conhost.exe',
+    'runtimebroker.exe',
+    'searchindexer.exe',
+    'searchui.exe',
+    'shellexperiencehost.exe',
+    'sihost.exe',
+    'startmenuexperiencehost.exe'
+  ];
+  
+  // Check if this is a system process we should filter out
+  if (systemProcesses.includes(appName.toLowerCase())) {
+    return 'System Process';
+  }
+  
+  // Common app name mappings
+  const appNameMap = {
+    'cursor.exe': 'VSCode',
+    'code.exe': 'VSCode',
+    'chrome.exe': 'Chrome',
+    'firefox.exe': 'Firefox',
+    'msedge.exe': 'Edge',
+    'explorer.exe': 'File Explorer',
+    'discord.exe': 'Discord',
+    'spotify.exe': 'Spotify',
+    'slack.exe': 'Slack',
+    'teams.exe': 'Teams',
+    'outlook.exe': 'Outlook',
+    'winword.exe': 'Word',
+    'excel.exe': 'Excel',
+    'powerpnt.exe': 'PowerPoint',
+    'notepad.exe': 'Notepad',
+    'cmd.exe': 'Command Prompt',
+    'powershell.exe': 'PowerShell',
+    'devenv.exe': 'Visual Studio',
+    'rider64.exe': 'Rider',
+    'idea64.exe': 'IntelliJ IDEA',
+    'pycharm64.exe': 'PyCharm',
+    'photoshop.exe': 'Photoshop',
+    'illustrator.exe': 'Illustrator',
+    'steam.exe': 'Steam',
+    'league of legends.exe': 'League of Legends',
+    'valorant.exe': 'Valorant',
+    'fortnite.exe': 'Fortnite'
+  };
+  
+  // Check if we have a friendly name for this app
+  if (appNameMap[appName.toLowerCase()]) {
+    return appNameMap[appName.toLowerCase()];
+  }
+  
+  // Otherwise format the name
+  return appName
+    .replace(/\.exe$/, '') // Remove .exe extension
+    .replace(/([A-Z])/g, ' $1') // Add spaces before capital letters
+    .toLowerCase() // Convert to lowercase
+    .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+};
 
 export default ActivityDashboard; 

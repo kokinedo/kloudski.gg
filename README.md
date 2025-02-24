@@ -73,3 +73,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Chart.js](https://www.chartjs.org/) for the visualization library
 - [JetBrains](https://www.jetbrains.com/) for the JetBrains Mono font
+
+## Firebase Setup
+
+1. Create a Firebase project at https://console.firebase.google.com/
+2. Go to Project Settings > Service Accounts
+3. Click "Generate new private key" and save the file as `firebase-key.json` in the metrics_collector directory
+4. Set up Firestore database in your Firebase project
+
+## Netlify Setup
+
+1. Add the following environment variables in your Netlify site settings:
+   - FIREBASE_TYPE
+   - FIREBASE_PROJECT_ID
+   - FIREBASE_PRIVATE_KEY_ID
+   - FIREBASE_PRIVATE_KEY
+   - FIREBASE_CLIENT_EMAIL
+   - FIREBASE_CLIENT_ID
+   - FIREBASE_AUTH_URI
+   - FIREBASE_TOKEN_URI
+   - FIREBASE_AUTH_PROVIDER_CERT_URL
+   - FIREBASE_CLIENT_CERT_URL
+
+   (All these values can be found in your firebase-key.json file)
+
+## Migrating Existing Data
+
+Run the migration script to upload your existing data to Firebase:
+
+```python metrics_collector/migrate_to_firebase.py
+```
