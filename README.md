@@ -1,105 +1,33 @@
-# Personal Activity Dashboard
+<div align="center">
+    <a href="https://kloudski.com"><h1 align="center">kloudski.com</h1></a>
 
-A minimalist, monochrome dashboard that displays my daily computer activity statistics and usage patterns. Built with React and Chart.js.
+My personal website, built with [Next.js](https://nextjs.org/), [Tailwind CSS](https://tailwindcss.com/), [Upstash](https://upstash.com?ref=kloudski.com), [Contentlayer](https://www.contentlayer.dev/) and deployed to [Vercel](https://vercel.com/).
 
-## Features
+</div>
 
-- Real-time activity tracking visualization
-- Focus distribution radar chart
-- Daily activity timeline
-- Click and keypress statistics
-- Weekly activity breakdown table
-- Responsive design for mobile and desktop
-- Monochrome aesthetic with ASCII art
+<br/>
 
-## Tech Stack
 
-- React
-- Chart.js / react-chartjs-2
-- CSS Modules
-- JetBrains Mono font
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/upstash/clone?demo-title=Next.js%20Portfolio%20with%20Pageview%20Counter&demo-description=Portfolio%20site%20with%20pageview%20counter%2C%20built%20with%20Next.js%2013%20App%20Router%2C%20Contentlayer%2C%20and%20Upstash%20Redis.&demo-url=https%3A%2F%2Fkloudski.com%2F&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F1DA8n5a6WaP9p1FXf9LmUY%2Fc6264fa2732355787bf657df92dda8a1%2FCleanShot_2023-04-17_at_14.17.37.png&project-name=Next.js%20Portfolio%20with%20Pageview%20Counter&repository-name=nextjs-portfolio-pageview-counter&repository-url=https%3A%2F%2Fgithub.com%2Fkloudski%2Fkloudski.com&from=templates&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17)
 
-## Local Development
+## Running Locally
 
-1. Clone the repository:
-bash
-git clone https://github.com/yourusername/personal-activity-dashboard.git
-cd personal-activity-dashboard
 
-2. Install dependencies:
-bash
-npm install
-
-3. Start the development server:
-bash
-npm start
-
-The app will be available at `http://localhost:3000`
-
-## Configuration
-
-Create a `.env` file in the root directory with the following variables:
-```
-REACT_APP_UPDATE_INTERVAL=5000
-REACT_APP_DATA_SOURCE=http://localhost:8080
+```sh-session
+git clone https://github.com/kloudski/kloudski.com.git
+cd kloudski.com
 ```
 
-## Building for Production
 
-To create a production build:
-```bash
-npm run build
+Create a `.env` file similar to [`.env.example`](https://github.com/kloudski/kloudski.com/blob/main/.env.example).
+
+Then install dependencies and run the development server:
+```sh-session
+pnpm install
+pnpm dev
 ```
 
-The built files will be in the `build` directory.
 
-## Data Collection
+## Cloning / Forking
 
-The dashboard requires a companion data collection service running locally. See the [activity-tracker](https://github.com/yourusername/activity-tracker) repository for setup instructions.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [Chart.js](https://www.chartjs.org/) for the visualization library
-- [JetBrains](https://www.jetbrains.com/) for the JetBrains Mono font
-
-## Firebase Setup
-
-1. Create a Firebase project at https://console.firebase.google.com/
-2. Go to Project Settings > Service Accounts
-3. Click "Generate new private key" and save the file as `firebase-key.json` in the metrics_collector directory
-4. Set up Firestore database in your Firebase project
-
-## Netlify Setup
-
-1. Add the following environment variables in your Netlify site settings:
-   - FIREBASE_TYPE
-   - FIREBASE_PROJECT_ID
-   - FIREBASE_PRIVATE_KEY_ID
-   - FIREBASE_PRIVATE_KEY
-   - FIREBASE_CLIENT_EMAIL
-   - FIREBASE_CLIENT_ID
-   - FIREBASE_AUTH_URI
-   - FIREBASE_TOKEN_URI
-   - FIREBASE_AUTH_PROVIDER_CERT_URL
-   - FIREBASE_CLIENT_CERT_URL
-
-   (All these values can be found in your firebase-key.json file)
-
-## Migrating Existing Data
-
-Run the migration script to upload your existing data to Firebase:
-
-```python metrics_collector/migrate_to_firebase.py
-```
+Please remove all of my personal information (projects, images, etc.) before deploying your own version of this site.
