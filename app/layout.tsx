@@ -6,19 +6,19 @@ import { Analytics } from "./components/analytics";
 
 export const metadata: Metadata = {
   title: {
-    default: "kloudski.com",
-    template: "%s | kloudski.com",
+    default: "kloudski.gg",
+    template: "%s | kloudski.gg",
   },
-  description: "Co-founder of unkey.dev and founder of planetfall.io",
+  description: "Founder of obaro.ai",
   openGraph: {
-    title: "kloudski.com",
+    title: "kloudski.gg",
     description:
-      "Co-founder of unkey.dev and founder of planetfall.io",
-    url: "https://kloudski.com",
-    siteName: "kloudski.com",
+      "Founder of obaro.ai",
+    url: "https://kloudski.gg",
+    siteName: "kloudski.gg",
     images: [
       {
-        url: "https://kloudski.com/og.png",
+        url: "https://kloudski.gg/og.png",
         width: 1920,
         height: 1080,
       },
