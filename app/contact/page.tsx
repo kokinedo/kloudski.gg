@@ -13,9 +13,9 @@ const socials = [
 	},
 	// {
 	// 	icon: <Mail size={20} />,
-	// 	href: "mailto:dev@kloudski.com",
+	// 	href: "mailto:dev@kloudski.gg",
 	// 	label: "Email",
-	// 	handle: "dev@kloudski.com",
+	// 	handle: "dev@kloudski.gg",
 	// },
 	// {
 	// 	icon: <Github size={20} />,

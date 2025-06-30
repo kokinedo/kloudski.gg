@@ -9,11 +9,11 @@ export const metadata: Metadata = {
     default: "kloudski.gg",
     template: "%s | kloudski.gg",
   },
-  description: "Founder of Obaro Industries",
+  description: "Founder of Agenthouse",
   openGraph: {
     title: "kloudski.gg",
     description:
-      "Founder of Obaro Industries",
+      "Founder of Agenthouse",
     url: "https://kloudski.gg",
     siteName: "kloudski.gg",
     images: [

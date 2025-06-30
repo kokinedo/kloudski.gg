@@ -38,10 +38,10 @@ export default function Home() {
           I'm building{" "}
           <Link
             target="_blank"
-            href="https://obaroindustries.com"
+            href="https://agenthouse.io"
             className="underline duration-500 hover:text-zinc-300"
           >
-            Obaro Industries
+            Agenthouse
           </Link>, an AI automation agency that helps businesses streamline their operations with intelligent solutions.
         </h2>
       </div>
