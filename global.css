@@ -8,3 +8,35 @@
   }
 } 
 
+.liquid-glass-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(120deg, rgba(30, 41, 59, 0.7) 0%, rgba(51, 65, 85, 0.5) 50%, rgba(16, 185, 129, 0.2) 100%),
+    radial-gradient(ellipse at 60% 40%, rgba(236, 72, 153, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 80%);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-radius: 0;
+  opacity: 0.98;
+  animation: liquid-glass-shimmer 8s linear infinite alternate;
+}
+
+@keyframes liquid-glass-shimmer {
+  0% {
+    background-position: 0% 50%, 60% 40%, 20% 80%;
+    filter: brightness(1) contrast(1.1);
+  }
+  50% {
+    background-position: 100% 50%, 65% 45%, 25% 85%;
+    filter: brightness(1.05) contrast(1.15) saturate(1.1);
+  }
+  100% {
+    background-position: 0% 50%, 60% 40%, 20% 80%;
+    filter: brightness(1) contrast(1.1);
+  }
+} 
+

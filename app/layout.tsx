@@ -69,6 +69,7 @@ export default function RootLayout({
         className={`bg-black ${process.env.NODE_ENV === "development" ? "debug-screens" : undefined
           }`}
       >
+        <div className="liquid-glass-bg" aria-hidden="true" />
         {children}
       </body>
     </html>
