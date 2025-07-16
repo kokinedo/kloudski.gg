@@ -1,8 +1,9 @@
 import "../global.css";
+import { GeistSans } from "geist/font/sans";
 import { Inter } from "@next/font/google";
-import LocalFont from "@next/font/local";
 import { Metadata } from "next";
 import { Analytics } from "./components/analytics";
+import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
   title: {
@@ -50,10 +51,8 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const calSans = LocalFont({
-  src: "../public/fonts/CalSans-SemiBold.ttf",
-  variable: "--font-calsans",
-});
+// Add a client component for the Vanta background
+const VantaBackground = dynamic(() => import("./components/vanta-bg"), { ssr: false });
 
 export default function RootLayout({
   children,
@@ -61,15 +60,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={[inter.variable, calSans.variable].join(" ")}>
+    <html lang="en" className={GeistSans.className}>
       <head>
         <Analytics />
+        {/* Vanta/Three.js scripts will be loaded in the client component */}
       </head>
       <body
         className={`bg-black ${process.env.NODE_ENV === "development" ? "debug-screens" : undefined
           }`}
       >
-        <div className="liquid-glass-bg" aria-hidden="true" />
+        <VantaBackground />
         {children}
       </body>
     </html>
